@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - CampusConnect</title>
+    <link rel="stylesheet" href="dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Server Sidebar (Left - Like Discord) -->
+    <div class="server-sidebar">
+        <div class="server-icon home-server active" onclick="switchServer('home')" title="Home">
+            <i class="fas fa-graduation-cap"></i>
+        </div>
+        <div class="sidebar-divider"></div>
+        
+        <div class="server-icon" onclick="switchServer('cse3')" title="CSE 3rd Year">
+            <span>CS3</span>
+        </div>
+        <div class="server-icon" onclick="switchServer('cse-dept')" title="CSE Department">
+            <span>CSD</span>
+        </div>
+        <div class="server-icon" onclick="switchServer('college')" title="College Main">
+            <span>CLG</span>
+        </div>
+        <div class="server-icon" onclick="switchServer('events')" title="Events">
+            <span>🎉</span>
+        </div>
+        
+        <div class="sidebar-divider"></div>
+        <div class="server-icon add-server" onclick="showCreateServer()" title="Create Server">
+            <i class="fas fa-plus"></i>
+        </div>
+    </div>
+
+    <!-- Channel Sidebar -->
+    <div class="channel-sidebar">
+        <div class="channel-header">
+            <h3 id="serverName">🎓 CampusConnect</h3>
+            <i class="fas fa-chevron-down"></i>
+        </div>
+
+        <!-- Search -->
+        <div class="channel-search">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search..." id="searchInput" onkeyup="searchMessages()">
+        </div>
+
+        <!-- Info Category Tabs -->
+        <div class="category-tabs">
+            <button class="tab active" onclick="filterCategory('all', this)">All</button>
+            <button class="tab" onclick="filterCategory('academic', this)">📚 Academic</button>
+            <button class="tab" onclick="filterCategory('non-academic', this)">🎯 Non-Academic</button>
+        </div>
+
+        <!-- Channels -->
+        <div class="channels-list" id="channelsList">
+            <div class="channel-category">
+                <i class="fas fa-chevron-down"></i>
+                <span>📢 ANNOUNCEMENTS</span>
+            </div>
+            <div class="channel active" onclick="switchChannel('announcements', this)">
+                <i class="fas fa-bullhorn"></i>
+                <span>general-announcements</span>
+                <span class="unread-badge">3</span>
+            </div>
+            <div class="channel" onclick="switchChannel('important', this)">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>important-notices</span>
+                <span class="unread-badge">1</span>
+            </div>
+
+            <div class="channel-category">
+                <i class="fas fa-chevron-down"></i>
+                <span>📚 ACADEMIC</span>
+            </div>
+            <div class="channel" onclick="switchChannel('syllabus', this)">
+                <i class="fas fa-book"></i>
+                <span>syllabus-updates</span>
+            </div>
+            <div class="channel" onclick="switchChannel('exams', this)">
+                <i class="fas fa-file-alt"></i>
+                <span>exam-schedule</span>
+                <span class="unread-badge">2</span>
+            </div>
+            <div class="channel" onclick="switchChannel('assignments', this)">
+                <i class="fas fa-tasks"></i>
+                <span>assignments</span>
+            </div>
+            <div class="channel" onclick="switchChannel('materials', this)">
+                <i class="fas fa-download"></i>
+                <span>study-materials</span>
+            </div>
+
+            <div class="channel-category">
+                <i class="fas fa-chevron-down"></i>
+                <span>🎯 NON-ACADEMIC</span>
+            </div>
+            <div class="channel" onclick="switchChannel('events', this)">
+                <i class="fas fa-calendar-alt"></i>
+                <span>events</span>
+                <span class="unread-badge">5</span>
+            </div>
+            <div class="channel" onclick="switchChannel('sports', this)">
+                <i class="fas fa-trophy"></i>
+                <span>sports</span>
+            </div>
+            <div class="channel" onclick="switchChannel('clubs', this)">
+                <i class="fas fa-users"></i>
+                <span>clubs-activities</span>
+            </div>
+            <div class="channel" onclick="switchChannel('placements', this)">
+                <i class="fas fa-briefcase"></i>
+                <span>placements</span>
+                <span class="unread-badge">4</span>
+            </div>
+            <div class="channel" onclick="switchChannel('general', this)">
+                <i class="fas fa-comments"></i>
+                <span>general-discussion</span>
+            </div>
+        </div>
+
+        <!-- User Info Bottom -->
+        <div class="user-panel">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">S</div>
+                <div class="user-details">
+                    <span class="username" id="userName">Student Name</span>
+                    <span class="user-role" id="userRole">🎓 Student</span>
+                </div>
+            </div>
+            <div class="user-actions">
+                <i class="fas fa-cog" onclick="showSettings()" title="Settings"></i>
+                <i class="fas fa-sign-out-alt" onclick="logout()" title="Logout"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <!-- Top Bar -->
+        <div class="content-header">
+            <div class="header-left">
+                <i class="fas fa-bullhorn channel-icon"></i>
+                <h3 id="channelName">general-announcements</h3>
+                <span class="channel-desc" id="channelDesc">All general announcements for the class</span>
+            </div>
+            <div class="header-right">
+                <div class="header-action" onclick="togglePinned()" title="Pinned Messages">
+                    <i class="fas fa-thumbtack"></i>
+                </div>
+                <div class="header-action" onclick="toggleMembers()" title="Members">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="header-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search in channel..." onkeyup="searchInChannel(this.value)">
+                </div>
+            </div>
+        </div>
+
+        <!-- Pinned Messages Panel (Hidden by default) -->
+        <div class="pinned-panel" id="pinnedPanel" style="display:none;">
+            <div class="pinned-header">
+                <h4><i class="fas fa-thumbtack"></i> Pinned Messages</h4>
+                <i class="fas fa-times" onclick="togglePinned()"></i>
+            </div>
+            <div class="pinned-messages" id="pinnedMessages">
+                <!-- Pinned messages will appear here -->
+            </div>
+        </div>
+
+        <!-- Messages Area -->
+        <div class="messages-area" id="messagesArea">
+            <!-- Welcome message -->
+            <div class="channel-welcome">
+                <div class="welcome-icon">
+                    <i class="fas fa-bullhorn"></i>
+                </div>
+                <h2>Welcome to #general-announcements</h2>
+                <p>This is the beginning of the channel. All important announcements will be posted here.</p>
+            </div>
+
+            <!-- Messages will be loaded here -->
+            <div id="messagesList">
+                <!-- Messages loaded by JS -->
+            </div>
+        </div>
+
+        <!-- Message Input -->
+        <div class="message-input-area">
+            <div class="input-container" id="inputContainer">
+                <div class="input-actions-left">
+                    <label for="fileUpload" class="input-action" title="Attach File">
+                        <i class="fas fa-plus-circle"></i>
+                    </label>
+                    <input type="file" id="fileUpload" style="display:none" onchange="handleFileUpload(this)">
+                </div>
+                <input type="text" id="messageInput" placeholder="Message #general-announcements" 
+                       onkeypress="handleKeyPress(event)">
+                <div class="input-actions-right">
+                    <!-- Category selector for professors/office -->
+                    <select id="msgCategory" class="category-select" title="Select Category">
+                        <option value="general">📌 General</option>
+                        <option value="academic">📚 Academic</option>
+                        <option value="non-academic">🎯 Non-Academic</option>
+                        <option value="urgent">🚨 Urgent</option>
+                    </select>
+                    <button class="send-btn" onclick="sendMessage()" title="Send">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Members Panel (Right Side) -->
+    <div class="members-panel" id="membersPanel">
+        <div class="members-header">
+            <h4>Members</h4>
+        </div>
+        
+        <div class="member-category">
+            <span>PROFESSORS — 3</span>
+        </div>
+        <div class="member-item online">
+            <div class="member-avatar prof-avatar">PS</div>
+            <div class="member-info">
+                <span class="member-name">Prof. Sharma</span>
+                <span class="member-status">HOD - CSE</span>
+            </div>
+            <div class="online-dot"></div>
+        </div>
+        <div class="member-item online">
+            <div class="member-avatar prof-avatar">PG</div>
+            <div class="member-info">
+                <span class="member-name">Prof. Gupta</span>
+                <span class="member-status">Data Structures</span>
+            </div>
+            <div class="online-dot"></div>
+        </div>
+        <div class="member-item">
+            <div class="member-avatar prof-avatar">PV</div>
+            <div class="member-info">
+                <span class="member-name">Prof. Verma</span>
+                <span class="member-status">DBMS</span>
+            </div>
+        </div>
+
+        <div class="member-category">
+            <span>OFFICE STAFF — 2</span>
+        </div>
+        <div class="member-item online">
+            <div class="member-avatar office-avatar">AD</div>
+            <div class="member-info">
+                <span class="member-name">Admin Office</span>
+                <span class="member-status">Administrative</span>
+            </div>
+            <div class="online-dot"></div>
+        </div>
+        <div class="member-item">
+            <div class="member-avatar office-avatar">EX</div>
+            <div class="member-info">
+                <span class="member-name">Exam Cell</span>
+                <span class="member-status">Examinations</span>
+            </div>
+        </div>
+
+        <div class="member-category">
+            <span>STUDENTS — 45</span>
+        </div>
+        <div class="member-item online">
+            <div class="member-avatar student-avatar">RA</div>
+            <div class="member-info">
+                <span class="member-name">Rahul Agarwal</span>
+                <span class="member-status">CSE 3rd Year - A</span>
+            </div>
+            <div class="online-dot"></div>
+        </div>
+        <div class="member-item online">
+            <div class="member-avatar student-avatar">PK</div>
+            <div class="member-info">
+                <span class="member-name">Priya Kumar</span>
+                <span class="member-status">CSE 3rd Year - A</span>
+            </div>
+            <div class="online-dot"></div>
+        </div>
+        <div class="member-item">
+            <div class="member-avatar student-avatar">AJ</div>
+            <div class="member-info">
+                <span class="member-name">Amit Joshi</span>
+                <span class="member-status">CSE 3rd Year - A</span>
+            </div>
+        </div>
+        <div class="member-item">
+            <div class="member-avatar student-avatar">NK</div>
+            <div class="member-info">
+                <span class="member-name">Neha Khanna</span>
+                <span class="member-status">CSE 3rd Year - B</span>
+            </div>
+        </div>
+        <div class="member-item">
+            <div class="member-avatar student-avatar">SK</div>
+            <div class="member-info">
+                <span class="member-name">Saurabh Kumar</span>
+                <span class="member-status">CSE 3rd Year - A</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Server Modal -->
+    <div class="modal-overlay" id="createServerModal" style="display:none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus-circle"></i> Create New Server</h3>
+                <i class="fas fa-times" onclick="closeModal('createServerModal')"></i>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Server Name</label>
+                    <input type="text" id="newServerName" placeholder="e.g., CSE 3rd Year Section A">
+                </div>
+                <div class="form-group">
+                    <label>Server Type</label>
+                    <select id="newServerType">
+                        <option value="class">📚 Class Server</option>
+                        <option value="department">🏛️ Department Server</option>
+                        <option value="club">🎯 Club/Activity Server</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Department</label>
+                    <select id="newServerDept">
+                        <option value="CSE">CSE</option>
+                        <option value="ECE">ECE</option>
+                        <option value="ME">ME</option>
+                        <option value="CE">CE</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary btn-full" onclick="createServer()">
+                    <i class="fas fa-plus"></i> Create Server
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal" style="display:none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3><i class="fas fa-cog"></i> Settings</h3>
+                <i class="fas fa-times" onclick="closeModal('settingsModal')"></i>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h4>Notification Preferences</h4>
+                    <div class="setting-item">
+                        <span>Academic Notifications</span>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span>Event Notifications</span>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span>General Notifications</span>
+                        <label class="switch">
+                            <input type="checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h4>Appearance</h4>
+                    <div class="setting-item">
+                        <span>Dark Mode</span>
+                        <label class="switch">
+                            <input type="checkbox" checked id="darkModeToggle" onchange="toggleDarkMode()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast" id="toast">
+        <i class="fas fa-bell"></i>
+        <span id="toastMessage">New notification!</span>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
