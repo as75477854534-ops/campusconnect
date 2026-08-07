@@ -20,24 +20,35 @@ function handleRoleChange() {
     const yearGroup = document.getElementById('yearGroup');
     const sectionGroup = document.getElementById('sectionGroup');
     const rollGroup = document.getElementById('rollGroup');
+    const yearInput = document.getElementById('regYear');
+    const sectionInput = document.getElementById('regSection');
 
-    if (role === 'office') {
-        if (yearGroup) yearGroup.style.display = 'none';
-        if (sectionGroup) sectionGroup.style.display = 'none';
-        if (rollGroup) {
-            rollGroup.querySelector('label').innerHTML = '<i class="fas fa-id-card"></i> Employee ID';
-        }
-    } else if (role === 'professor') {
-        if (yearGroup) yearGroup.style.display = 'none';
-        if (sectionGroup) sectionGroup.style.display = 'none';
-        if (rollGroup) {
-            rollGroup.querySelector('label').innerHTML = '<i class="fas fa-id-card"></i> Faculty ID';
-        }
+    if (role === 'student') {
+        yearGroup.style.display = 'block';
+        sectionGroup.style.display = 'block';
+
+        yearInput.required = true;
+        sectionInput.required = true;
+
+        rollGroup.querySelector('label').innerHTML =
+            '<i class="fas fa-id-card"></i> Roll Number';
     } else {
-        if (yearGroup) yearGroup.style.display = 'block';
-        if (sectionGroup) sectionGroup.style.display = 'block';
-        if (rollGroup) {
-            rollGroup.querySelector('label').innerHTML = '<i class="fas fa-id-card"></i> Roll Number';
+        yearGroup.style.display = 'none';
+        sectionGroup.style.display = 'none';
+
+        // Hidden fields must not remain required
+        yearInput.required = false;
+        sectionInput.required = false;
+
+        yearInput.value = '';
+        sectionInput.value = '';
+
+        if (role === 'professor') {
+            rollGroup.querySelector('label').innerHTML =
+                '<i class="fas fa-id-card"></i> Faculty ID';
+        } else if (role === 'office') {
+            rollGroup.querySelector('label').innerHTML =
+                '<i class="fas fa-id-card"></i> Employee ID';
         }
     }
 }
