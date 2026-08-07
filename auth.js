@@ -1,3 +1,6 @@
+// ===== AUTH.JS - Authentication Logic =====
+
+// Toggle Password Visibility
 function togglePassword(inputId, icon) {
     const input = document.getElementById(inputId);
     if (input.type === 'password') {
@@ -11,30 +14,38 @@ function togglePassword(inputId, icon) {
     }
 }
 
+// Handle Role Change (Register form)
 function handleRoleChange() {
     const role = document.getElementById('regRole').value;
     const yearGroup = document.getElementById('yearGroup');
     const sectionGroup = document.getElementById('sectionGroup');
-    const yearInput = document.getElementById('regYear');
-    const sectionInput = document.getElementById('regSection');
+    const rollGroup = document.getElementById('rollGroup');
 
-    if (role === 'student') {
-        if (yearGroup) yearGroup.style.display = 'block';
-        if (sectionGroup) sectionGroup.style.display = 'block';
-        if (yearInput) yearInput.required = true;
-        if (sectionInput) sectionInput.required = true;
-    } else {
+    if (role === 'office') {
         if (yearGroup) yearGroup.style.display = 'none';
         if (sectionGroup) sectionGroup.style.display = 'none';
-        if (yearInput) { yearInput.required = false; yearInput.value = ''; }
-        if (sectionInput) { sectionInput.required = false; sectionInput.value = ''; }
+        if (rollGroup) {
+            rollGroup.querySelector('label').innerHTML = '<i class="fas fa-id-card"></i> Employee ID';
+        }
+    } else if (role === 'professor') {
+        if (yearGroup) yearGroup.style.display = 'none';
+        if (sectionGroup) sectionGroup.style.display = 'none';
+        if (rollGroup) {
+            rollGroup.querySelector('label').innerHTML = '<i class="fas fa-id-card"></i> Faculty ID';
+        }
+    } else {
+        if (yearGroup) yearGroup.style.display = 'block';
+        if (sectionGroup) sectionGroup.style.display = 'block';
+        if (rollGroup) {
+            rollGroup.querySelector('label').innerHTML = '<i class="fas fa-id-card"></i> Roll Number';
+        }
     }
 }
 
-// Firebase Registration
+// Handle Registration
 function handleRegister(e) {
     e.preventDefault();
-    
+
     const userData = {
         name: document.getElementById('regName').value,
         email: document.getElementById('regEmail').value,
@@ -43,65 +54,48 @@ function handleRegister(e) {
         department: document.getElementById('regDepartment').value,
         year: document.getElementById('regYear') ? document.getElementById('regYear').value : '',
         section: document.getElementById('regSection') ? document.getElementById('regSection').value : '',
-        rollNumber: document.getElementById('regRoll') ? document.getElementById('regRoll').value : ''
+        rollNumber: document.getElementById('regRoll') ? document.getElementById('regRoll').value : '',
+        joinedAt: new Date().toISOString()
     };
 
-    if (!window.db) {
-        alert('Firebase not loaded!');
+    // Save to localStorage (in real app, this would be a database)
+    let users = JSON.parse(localStorage.getItem('campusUsers') || '[]');
+    
+    // Check if email already exists
+    const existingUser = users.find(u => u.email === userData.email);
+    if (existingUser) {
+        alert('⚠️ This email is already registered! Please login.');
         return;
     }
 
-    // Check if email exists
-    window.db.ref('users').orderByChild('email').equalTo(userData.email).once('value')
-        .then((snapshot) => {
-            if (snapshot.exists()) {
-                alert('Email already registered!');
-            } else {
-                // Save to Firebase
-                window.db.ref('users').push(userData)
-                    .then(() => {
-                        alert('Registration Successful!');
-                        window.location.href = 'login.html';
-                    });
-            }
-        });
+    users.push(userData);
+    localStorage.setItem('campusUsers', JSON.stringify(users));
+
+    // Auto login
+    localStorage.setItem('currentUser', JSON.stringify(userData));
+
+    alert('✅ Registration Successful! Redirecting to Dashboard...');
+    window.location.href = 'dashboard.html';
 }
 
-// Firebase Login
+// Handle Login
 function handleLogin(e) {
     e.preventDefault();
-    
+
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
     const role = document.getElementById('loginRole').value;
 
-    if (!window.db) {
-        alert('Firebase not loaded!');
-        return;
+    let users = JSON.parse(localStorage.getItem('campusUsers') || '[]');
+    const user = users.find(u => u.email === email && u.password === password && u.role === role);
+
+    if (user) {
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        alert('✅ Login Successful!');
+        window.location.href = 'dashboard.html';
+    } else {
+        alert('❌ Invalid credentials! Please check your email, password, and role.');
     }
-
-    window.db.ref('users').orderByChild('email').equalTo(email).once('value')
-        .then((snapshot) => {
-            if (!snapshot.exists()) {
-                alert('User not found!');
-                return;
-            }
-
-            let userFound = null;
-            snapshot.forEach((childSnapshot) => {
-                const userData = childSnapshot.val();
-                if (userData.password === password && userData.role === role) {
-                    userFound = userData;
-                }
-            });
-
-            if (userFound) {
-                localStorage.setItem('currentUser', JSON.stringify(userFound));
-                window.location.href = 'dashboard.html';
-            } else {
-                alert('Invalid password or role!');
-            }
-        });
 }
 
 // Demo Login
@@ -110,35 +104,32 @@ function demoLogin(role) {
         student: {
             name: 'Rahul Sharma',
             email: 'rahul@college.edu',
-            password: 'demo123',
             role: 'student',
-            department: 'CSE'
+            department: 'CSE',
+            year: '3',
+            section: 'A',
+            rollNumber: 'CSE2021045'
         },
         professor: {
             name: 'Prof. Anil Kumar',
-            email: 'anil@college.edu',
-            password: 'demo123',
+            email: 'anil.kumar@college.edu',
             role: 'professor',
-            department: 'CSE'
+            department: 'CSE',
+            year: '',
+            section: '',
+            rollNumber: 'FAC001'
         },
         office: {
             name: 'Admin Office',
             email: 'admin@college.edu',
-            password: 'demo123',
             role: 'office',
-            department: 'Admin'
+            department: 'Admin',
+            year: '',
+            section: '',
+            rollNumber: 'ADM001'
         }
     };
 
-    const demoUser = demoUsers[role];
-    
-    // Save demo user to Firebase if not exists
-    window.db.ref('users').orderByChild('email').equalTo(demoUser.email).once('value')
-        .then((snapshot) => {
-            if (!snapshot.exists()) {
-                window.db.ref('users').push(demoUser);
-            }
-            localStorage.setItem('currentUser', JSON.stringify(demoUser));
-            window.location.href = 'dashboard.html';
-        });
+    localStorage.setItem('currentUser', JSON.stringify(demoUsers[role]));
+    window.location.href = 'dashboard.html';
 }
