@@ -64,7 +64,28 @@
       // ⚠️ ZAROORI: Yahan apni purani Firebase Config paste karo!
       // (Agar purani config nahi hai, toh Firebase Console se copy karke yahan daal do)
       const firebaseConfig = {
-        apiKey: "YOUR_API_KEY_HERE",
+        apiKey: "// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBst4nBT298bqRacyxiPC351lQlvhvVuDA",
+  authDomain: "campusconnect-6dbd5.firebaseapp.com",
+  databaseURL: "https://campusconnect-6dbd5-default-rtdb.firebaseio.com",
+  projectId: "campusconnect-6dbd5",
+  storageBucket: "campusconnect-6dbd5.firebasestorage.app",
+  messagingSenderId: "197463812427",
+  appId: "1:197463812427:web:9bdd5a708816c5990f20ce",
+  measurementId: "G-FMH93QJ0PW"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
         authDomain: "YOUR_PROJECT.firebaseapp.com",
         projectId: "YOUR_PROJECT_ID",
         storageBucket: "YOUR_PROJECT.appspot.com",
@@ -120,7 +141,72 @@
       });
     </script>
 
-    <!-- Password Toggle Script -->
+    <!-- Firebase Login Logic -->
+    <script type="module">
+      // Firebase se zaroori cheezein import kar rahe hain
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+      import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+      // Tumhara Firebase Config
+      const firebaseConfig = {
+        apiKey: "AIzaSyBst4nBT298bqRacyxiPC3511Q1vhvVuDA",
+        authDomain: "campusconnect-6dbd5.firebaseapp.com",
+        databaseURL: "https://campusconnect-6dbd5-default-rtdb.firebaseio.com",
+        projectId: "campusconnect-6dbd5",
+        storageBucket: "campusconnect-6dbd5.appspot.com",
+        messagingSenderId: "1197463812427",
+        appId: "1:1197463812427:web:9bdd5a708816c5990f20ce",
+        measurementId: "G-FMH93QJ0PW"
+      };
+
+      // Firebase ko initialize karo
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+
+      // Login Button ka Logic
+      const loginForm = document.getElementById('loginForm');
+      
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault(); // Page ko reload hone se rokta hai
+
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const btn = document.querySelector('.btn-submit');
+
+        // Button par loading dikhao
+        const originalText = btn.innerHTML;
+        btn.innerHTML = 'Logging in... <i class="fas fa-spinner fa-spin"></i>';
+        btn.disabled = true;
+        btn.style.opacity = '0.7';
+
+        try {
+          // Firebase se login karo
+          const userCredential = await signInWithEmailAndPassword(auth, email, password);
+          
+          // Login Successful!
+          alert("Login Successful! Welcome " + userCredential.user.email);
+          
+          // Dashboard par redirect karo
+          window.location.href = "dashboard.html"; 
+          
+        } catch (error) {
+          // Agar login fail ho jaye
+          let errorMsg = "Login Failed!";
+          if (error.code === 'auth/user-not-found') errorMsg = "User not found! Please register first.";
+          if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') errorMsg = "Wrong email or password!";
+          if (error.code === 'auth/invalid-email') errorMsg = "Invalid email format!";
+          
+          alert(errorMsg);
+          
+          // Button ko wapas normal karo
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+          btn.style.opacity = '1';
+        }
+      });
+    </script>
+
+    <!-- Password Toggle Script (Eye Icon) -->
     <script>
         const togglePassword = document.querySelector('#togglePassword');
         const passwordInput = document.querySelector('#password');
