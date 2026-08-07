@@ -941,4 +941,130 @@ window.addEventListener("storage", function (event) {
         loadChannel(currentChannel);
         showToast("📢 New message received!");
     }
+    // ================= FIREBASE REALTIME OVERRIDE =================
+// This code makes messages work across different devices.
+
+var activeFirebaseRef = null;
+
+function isFirebaseReady() {
+    return typeof window.db !== 'undefined' && window.db !== null;
+}
+
+// Override loadChannel with Firebase support
+function loadChannel(channelId) {
+    currentChannel = channelId;
+
+    const channelName = document.getElementById('channelName');
+    const channelDesc = document.getElementById('channelDesc');
+    const messageInput = document.getElementById('messageInput');
+    const welcomeIcon = document.querySelector('.welcome-icon i');
+    const welcomeTitle = document.querySelector('.channel-welcome h2');
+    const welcomeDesc = document.querySelector('.channel-welcome p');
+
+    if (channelName) channelName.textContent = channelId;
+    if (channelDesc) channelDesc.textContent = channelDescriptions[channelId] || '';
+    if (messageInput) messageInput.placeholder = `Message #${channelId}`;
+
+    const iconClass = channelIcons[channelId] || 'fa-hashtag';
+
+    if (welcomeIcon) welcomeIcon.className = `fas ${iconClass}`;
+    if (welcomeTitle) welcomeTitle.textContent = `Welcome to #${channelId}`;
+    if (welcomeDesc) welcomeDesc.textContent = channelDescriptions[channelId] || 'Start of the channel';
+
+    const headerIcon = document.querySelector('.channel-icon');
+    if (headerIcon) {
+        headerIcon.className = `fas ${iconClass} channel-icon`;
+    }
+
+    const sampleMessages = channelMessages[channelId] || [];
+
+    // First show sample messages
+    renderMessages(sampleMessages);
+
+    // Stop previous Firebase listener
+    if (activeFirebaseRef) {
+        activeFirebaseRef.off();
+    }
+
+    // Firebase real-time listener
+    if (isFirebaseReady()) {
+        activeFirebaseRef = window.db.ref('messages/' + channelId);
+
+        activeFirebaseRef.on('value', function(snapshot) {
+            const data = snapshot.val();
+            let firebaseMessages = [];
+
+            if (data) {
+                firebaseMessages = Object.keys(data).map(function(key) {
+                    return {
+                        firebaseKey: key,
+                        ...data[key]
+                    };
+                });
+            }
+
+            const finalMessages = [...sampleMessages, ...firebaseMessages];
+
+            finalMessages.sort(function(a, b) {
+                return (a.id || 0) - (b.id || 0);
+            });
+
+            renderMessages(finalMessages);
+        }, function(error) {
+            console.error('Firebase listen error:', error);
+            showToast('Firebase permission error!');
+        });
+    }
+}
+
+// Override sendMessage with Firebase support
+function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const text = input.value.trim();
+
+    if (!text) return;
+
+    const categorySelect = document.getElementById('msgCategory');
+    const category = categorySelect ? categorySelect.value : 'general';
+
+    const newMsg = {
+        id: Date.now(),
+        author: currentUser.name,
+        role: currentUser.role,
+        avatar: currentUser.name.split(' ').map(function(n) {
+            return n[0];
+        }).join('').toUpperCase().slice(0, 2),
+        text: text,
+        category: category,
+        time: 'Just now',
+        pinned: false,
+        urgent: category === 'urgent',
+        channel: currentChannel
+    };
+
+    // Save to Firebase
+    if (isFirebaseReady()) {
+        window.db.ref('messages/' + currentChannel).push(newMsg)
+            .then(function() {
+                input.value = '';
+                showToast('Message sent! ✉️');
+            })
+            .catch(function(error) {
+                console.error('Firebase message error:', error);
+                showToast('Message failed! Check Firebase rules.');
+            });
+    } else {
+        // Backup local save
+        if (!channelMessages[currentChannel]) {
+            channelMessages[currentChannel] = [];
+        }
+
+        channelMessages[currentChannel].push(newMsg);
+        saveMessages();
+        renderMessages(channelMessages[currentChannel]);
+
+        input.value = '';
+        showToast('Message sent locally! ✉️');
+    }
+}
 });
